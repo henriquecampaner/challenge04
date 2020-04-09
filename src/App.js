@@ -16,16 +16,26 @@ import {
 export default function App() {
   const [repos, setRepos] = useState([]);
 
+  async function getRepos() {
+   const {data} = await api.get('repositories');
+   setRepos(data);
+  }
+
   useEffect(() => {
-    api.get('repositories').then(response => {
-      return setRepos(response.data);
-    });
+    getRepos();
   }, []);
 
   async function handleLikeRepository(id) {
-    // await api.post(`/repositories/${id}/like`);
-    console.log(id);
-    Alert.alert('wtf')
+   const {data} = await api.post(`/repositories/${id}/like`);
+    
+    const newRepo = repos.map(repo => {
+      if (repo.id === id) {
+        repo.likes = data.likes;
+      }
+      return repo;
+    });
+
+    setRepos(newRepo);
   }
 
   return (
@@ -41,7 +51,7 @@ export default function App() {
 
           <View style={styles.techsContainer}>
             {repo.techs.map(tech => (
-              <Text style={styles.tech} key={Math.random(1, 100)}>
+              <Text style={styles.tech} key={Math.random(1, 100).toString()}>
                 {tech}
               </Text>
             ))}
@@ -50,17 +60,15 @@ export default function App() {
           <View style={styles.likesContainer}>
             <Text
               style={styles.likeText}
-              // Remember to replace "1" below with repository ID: {`repository-likes-${repository.id}`}
-              testID={`repository-likes-1`}
+              testID={`repository-likes-${repo.id}`}
             >
-              {repo.likes}
+              {repo.likes} {repo.likes > 0 ? 'curtidas' : 'curtida'}
             </Text>
           </View>
 
           <TouchableOpacity
             style={styles.button}
             onPress={() => handleLikeRepository(repo.id)}
-            // Remember to replace "1" below with repository ID: {`like-button-${repository.id}`}
             testID={`like-button-${repo.id}`}
           >
             <Text style={styles.buttonText}>Curtir</Text>
